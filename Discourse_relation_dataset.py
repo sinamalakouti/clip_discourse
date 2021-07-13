@@ -34,10 +34,13 @@ class DiscourseRelationDataset(datasets.ImageFolder):
         return_index=False,
         is_training = True
     ):
-        super(DiscourseRelationDataset, self).__init__(dataroot)
+        super(DiscourseRelationDataset, self).__init__(os.path.join(dataroot, "data"))
+       # super(DiscourseRelationDataset, self).__init__(dataroot)
         caption_path = os.path.join(dataroot, "captions_all_json.json")
         self.captions = json.load(open(caption_path, "r"))
         self.image_name = list(self.captions.keys())
+        print("IMAGE NAME SIZEEEEEEE")
+        print(len(self.image_name))
         self.dataroot = dataroot
         self.batch_size = batch_size
         self.num_workers = num_workers
@@ -73,7 +76,7 @@ class DiscourseRelationDataset(datasets.ImageFolder):
         if self.is_training:
             image_id = self.image_name[index]
             caption = self.captions[image_id]
-            image_path = os.path.join(self.dataroot, "images/{}.jpg".format(image_id))
+            image_path = os.path.join(self.dataroot, "data/images/{}.jpg".format(image_id))
             image = self.loader(image_path)
 
             multi_crops = list(map(lambda trans: trans(image), self.trans))
@@ -94,7 +97,7 @@ class DiscourseRelationDataset(datasets.ImageFolder):
         else:
             image_id = self.image_name[index]
             caption = self.captions[image_id]
-            image_path = os.path.join(self.dataroot, "images/{}.jpg".format(image_id))
+            image_path = os.path.join(self.dataroot, "data/images/{}.jpg".format(image_id))
             image = self.loader(image_path)
             image = self.im_preprocessor(image)
             caption = self.text_tokenizer(caption).reshape(-1)

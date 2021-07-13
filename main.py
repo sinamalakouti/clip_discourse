@@ -61,7 +61,7 @@ def evaluate(testdata_path, device, model, cfg):
             images, captions, image_ids = batch
             true_targets = []
             for img_id in image_ids:
-                true_targets.append(np.fromiter(all_targets[img_id].values(), dtype=np.double))
+                true_targets.append(np.fromiter(all_targets[img_id].values(), dtype=np.float   ))
             true_targets = torch.from_numpy(np.array(true_targets))
             true_targets = true_targets.to(device)
             # model.double()
@@ -82,9 +82,9 @@ def evaluate(testdata_path, device, model, cfg):
             avg_sample += res['samples/f1']
             # pred[counter * batch_size: (counter + 1) * batch_size, :] = discourse_prediction
             counter += 1
-            print("micro/f1 : {},   weighted/f1 : {},    samples/f1 : {}".format(avg_micro / counter, avg_avg / counter,
+        print("micro/f1 : {},   weighted/f1 : {},    samples/f1 : {}".format(avg_micro / counter, avg_avg / counter,
                                                                                  avg_sample / counter))
-            model.train()
+    model.train()
 
 
 def compute_score(pred, target, threshold=0.5):
@@ -101,7 +101,7 @@ def train_val(cfg, arg):
 
     traindata_path = cfg['train_path']
     testdata_path = cfg['test_path']
-    batch_size = 2
+    batch_size = cfg['batch_size']
 
     train_set = DiscourseRelationDataset(
         clip_preprocess,
@@ -116,8 +116,11 @@ def train_val(cfg, arg):
         size_dataset=-1,
         return_index=False,
     )
+
+    print("******* mmain dataset sie**********")
+    print(len(train_set))
     if torch.cuda.is_available():
-        dev = "cuda:{}".format(args.cuda)
+        dev = "cuda:0"
     else:
         dev = "cpu"
     device = torch.device(dev)
@@ -131,6 +134,7 @@ def train_val(cfg, arg):
     )
     loss_fn = torch.nn.CrossEntropyLoss()
     model = DiscourseModel(1024, 512, len(labels))
+    #model.float()
     optimizer = torch.optim.SGD(
         model.parameters(),
         lr=cfg['lr'],
@@ -155,8 +159,8 @@ def train_val(cfg, arg):
             loss.backward()
             optimizer.step()
 
-            print("EVALUATION")
-            evaluate(testdata_path, device, model, cfg)
+        print("EVALUATION")
+        evaluate(testdata_path, device, model, cfg)
 
 
 def parse_args():

@@ -1,5 +1,5 @@
-train_path: "/Users/sinamalakouti/PycharmProjects/vilbert-multi-task/data/discoursedata/train"
-test_path: "/Users/sinamalakouti/PycharmProjects/vilbert-multi-task/data/discoursedata/train"
+train_path: "/projects/sina/vilbert/discourse_project/vilbert-multi-task/data/discoursedata/train"
+test_path: "/projects/sina/vilbert/discourse_project/vilbert-multi-task/data/discoursedata/test"
 n_epochs: 20
 lr: 0.0001
 batch_size: 32
