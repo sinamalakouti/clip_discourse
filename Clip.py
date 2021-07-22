@@ -33,37 +33,37 @@ class PrototypeModel(torch.nn.Module):
 
 class DiscourseModel(torch.nn.Module):
 
-    def __init__(self, joint_in_dim, joint_hid_dim, joint_out_dim):
+    def __init__(self, joint_in_dim, joint_hid_dim, joint_out_dim, device):
         super(DiscourseModel, self).__init__()
-        self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", 'cuda:0')
+        self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", device)
 
         self.projection_model = ProjectionModel(joint_in_dim, joint_hid_dim)
         self.prototype_model = PrototypeModel(joint_hid_dim // 2, joint_out_dim)
         # self.softmax = nn.Softmax()
 
-    def get_image_repr(self, X):
+    def get_image_repr(self, X, device):
         
         self.clip_model.to(X.device)
-        self.clip_model = self.clip_model.to('cuda:0')
+        self.clip_model = self.clip_model.to(device)
         return self.clip_model.encode_image(X)
 
     def get_text_repr(self, X):
     
         return self.clip_model.encode_text(X)
 
-    def forward(self, high_res_images, low_res_images, texts, is_supervised):
+    def forward(self, high_res_images, low_res_images, texts, is_supervised, device):
         teach_logits = None
         stud_logits = None
 
         if is_supervised:
-            teach_logits = self._sup_fw(high_res_images, texts)
+            teach_logits = self._sup_fw(high_res_images, texts, device)
         else:
-            teach_logits, stud_logits = self._unsup_fw(high_res_images, low_res_images, texts)
+            teach_logits, stud_logits = self._unsup_fw(high_res_images, low_res_images, texts, device)
         return teach_logits, stud_logits
 
-    def _sup_fw(self, images, texts):
+    def _sup_fw(self, images, texts, device):
 
-        image_features = self.get_image_repr(images)
+        image_features = self.get_image_repr(images, device)
         text_features = self.get_text_repr(texts)
         joint_features = torch.cat([image_features, text_features], axis=1)
         joint_features = joint_features.float()
@@ -72,9 +72,9 @@ class DiscourseModel(torch.nn.Module):
 
         return orig_logits
 
-    def _unsup_fw(self, high_res_images, low_res_images, texts):
+    def _unsup_fw(self, high_res_images, low_res_images, texts, device):
 
-        orig_image_features = self.get_image_repr(high_res_images).detach()
+        orig_image_features = self.get_image_repr(high_res_images, device).detach()
         orig_text_features = self.get_text_repr(texts).detach()
         orig_joint_features = torch.cat([orig_image_features, orig_text_features], axis=1).detach()
         orig_joint_features = orig_joint_features.float()
@@ -83,7 +83,7 @@ class DiscourseModel(torch.nn.Module):
         orig_logits = orig_logits.detach()
 
         aug_images = low_res_images
-        aug_image_features = self.get_image_repr(aug_images)
+        aug_image_features = self.get_image_repr(aug_images, device)
         aug_text_features = self.get_text_repr(texts)
         aug_joint_features = torch.cat([aug_image_features, aug_text_features], axis=1)
         aug_joint_features = aug_joint_features.float()
