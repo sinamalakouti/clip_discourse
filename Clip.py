@@ -68,7 +68,7 @@ class DiscourseModel(torch.nn.Module):
         joint_features = torch.cat([image_features, text_features], axis=1)
         joint_features = joint_features.float()
         logits = self.projection_model(joint_features)
-        orig_logits = self.prototype_model(logits).detach()
+        orig_logits = self.prototype_model(logits)
 
         return orig_logits
 

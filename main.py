@@ -185,7 +185,7 @@ def train_val(cfg, arg):
         batch_size=batch_size,
     )
 
-    loss_fn = torch.nn.CrossEntropyLoss()
+    loss_fn = torch.nn.BCEWithLogitsLoss()
     model = DiscourseModel(1024, 512, len(labels), device)
     # model.float()
     optimizer = torch.optim.SGD(
@@ -209,7 +209,7 @@ def train_val(cfg, arg):
             batch = tuple(t.to(device=device, non_blocking=True) if type(t) == torch.Tensor else t for t in batch)
             (high_res, low_res, text, target) = batch
             out = model(high_res, low_res, text, is_sup, device)
-            loss = model.compute_loss(out[0], out[1], loss_fn, is_sup)
+            loss = model.compute_loss(target.float(), out[0], loss_fn, is_sup)
             print("********* TRAINING SUPERVISED LOSSS: {} *************".format(loss.item()))
             # ============ backward and optim step ... ============
             #
