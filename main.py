@@ -194,6 +194,13 @@ def train_val(cfg, arg):
         momentum=0.9,
         weight_decay=1e-4,
     )
+
+    optimizer = torch.optim.Adam(
+        model.parameters(),
+        lr=cfg['lr'],
+        betas=(0.55,0.999)
+    )
+
     n_epochs = cfg['n_epochs']
     model = model.to(device)
     best_score = 0
@@ -232,9 +239,10 @@ def train_val(cfg, arg):
             loss.backward()
             optimizer.step()
 
-        print("********* EVALUATE ON VALIDATION **************")
+        print("********* EVALUATE ON TEST **************")
         model, avg_avg = evaluate(traindata_path, device, model, cfg, mode='val')
         if avg_avg >= best_score:
+            best_score=avg_avg
             torch.save(model, "./best_model_clip_discourse.pth")
             _, _ = evaluate(traindata_path, device, model, cfg, mode='test')
 
